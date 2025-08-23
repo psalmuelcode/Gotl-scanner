@@ -102,13 +102,14 @@ async function checkInUser(name, email, phone, church, source) {
     "https://script.google.com/macros/s/AKfycbzsUjkeMPvbuyxbZtwRYQykqOFQiuvMJEwstSOLXvHBY_djnrQlhEMg1PNfChB11j9Fjg/exec";
 
   try {
-    await fetch(webhookURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8",
-      },
-      body: JSON.stringify({ name, email, phone, church, source }),
-    });
+    await fetch("/.netlify/functions/proxy", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ name, email, phone, church, source })
+});
+
 
     resultDiv.innerHTML += `
       <div class="result-card" style="margin-top: 10px; background:#e6ffed;border-left:4px solid #28a745; text-align:center;">
