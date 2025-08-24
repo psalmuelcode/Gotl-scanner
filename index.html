@@ -2,29 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GOTL 4.0 Check-In</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <!-- <span></span><span></span><span></span><span></span><span></span> -->
+  <!-- Aurora background blobs -->
+  <div class="aurora"></div>
+
+  <canvas id="fxCanvas"></canvas>
+
   <div class="container">
     <h1>🎉 GOTL 4.0 Check-In</h1>
 
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search by name or email..."
-    />
-    <button onclick="searchUser()">🔍 Search & Check In</button>
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="Search by name or email…" />
+      <button id="searchBtn" class="btn primary">🔍 Search</button>
+    </div>
 
-    <div id="loader" class="loader hidden">⏳ Searching...</div>
+    <div id="loader" class="subtle-loader hidden">⏳ Searching…</div>
     <div id="result" class="result"></div>
   </div>
 
+  <!-- Fullscreen busy overlay (shown during Check-In) -->
+  <div id="busyOverlay" class="overlay hidden" aria-hidden="true">
+    <div class="loader-wrap">
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+      <div class="overlay-text">Checking in…</div>
+    </div>
+  </div>
+
+  <!-- Success neon blast -->
+  <div id="successBlast" class="success-blast hidden">
+    <span>✅ CHECKED IN!</span>
+  </div>
+
+  <!-- Libs -->
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- Your app -->
   <script src="script.js"></script>
 </body>
 </html>
