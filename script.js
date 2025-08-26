@@ -49,39 +49,53 @@ async function searchUser(){
 
   const allUsers = [];
   try{
+    // Fetch data from both Firestore collections
     for (const col of ["tickets", "attendees"]){
       const snapshot = await db.collection(col).get();
       snapshot.forEach((doc) => allUsers.push({ ...doc.data(), id: doc.id, source: col }));
     }
 
+    // Run fuzzy search
     const fuse = new Fuse(allUsers, { keys:["name","email"], threshold:0.3 });
     const results = fuse.search(query);
 
     loader.classList.add("hidden");
 
     if (results.length === 0){
-      resultDiv.innerHTML = msgCard(`⚠️ No match found for "<strong>${escapeHtml(query)}</strong>". Try again?`, "warn");
+      resultDiv.innerHTML = msgCard(
+        `⚠️ No match found for "<strong>${escapeHtml(query)}</strong>". Try again?`, 
+        "warn"
+      );
       return;
     }
 
-    const user = results[0].item;
+    // Limit to 10 results
+    const topResults = results.slice(0, 10);
 
-    resultDiv.innerHTML = `
-      <div class="result-card" id="userCard">
-        <p><strong>Name:</strong> ${escapeHtml(user.name || "")}</p>
-        <p><strong>Email:</strong> ${escapeHtml(user.email || "")}</p>
-        <p><strong>Phone:</strong> ${escapeHtml(user.phone || "")}</p>
-        <p><strong>Church:</strong> ${escapeHtml(user.church || "")}</p>
-        <p class="meta"><strong>Source:</strong> ${escapeHtml(user.source || "")}</p>
+    // Build list
+    resultDiv.innerHTML = topResults.map((res, idx) => {
+      const user = res.item;
+      return `
+        <div class="result-card" id="userCard-${idx}">
+          <p><strong>Name:</strong> ${escapeHtml(user.name || "")}</p>
+          <p><strong>Email:</strong> ${escapeHtml(user.email || "")}</p>
+          <p><strong>Phone:</strong> ${escapeHtml(user.phone || "")}</p>
+          <p><strong>Church:</strong> ${escapeHtml(user.church || "")}</p>
+          <p class="meta"><strong>Source:</strong> ${escapeHtml(user.source || "")}</p>
 
-        <div class="result-actions">
-          <button class="btn success" id="checkBtn">✅ Confirm Check-In</button>
+          <div class="result-actions">
+            <button class="btn success" id="checkBtn-${idx}">✅ Confirm Check-In</button>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }).join("");
 
-    document.getElementById("checkBtn").addEventListener("click", () => {
-      checkInUser(user.name, user.email, user.phone, user.church, user.source);
+    // Attach event listeners for each button
+    topResults.forEach((res, idx) => {
+      const user = res.item;
+      document.getElementById(`checkBtn-${idx}`).addEventListener("click", () => {
+        checkInUser(user.name, user.email, user.phone, user.church, user.source);
+      });
     });
 
   }catch(err){
@@ -141,12 +155,12 @@ function showBusy(flag){
 }
 
 function bumpCard(){
-  const card = document.getElementById("userCard");
-  if (!card) return;
-  card.classList.remove("shake");
-  // force reflow to restart the animation
-  void card.offsetWidth;
-  card.classList.add("shake");
+  const cards = document.querySelectorAll(".result-card");
+  cards.forEach(card => {
+    card.classList.remove("shake");
+    void card.offsetWidth; // restart animation
+    card.classList.add("shake");
+  });
 }
 
 function escapeHtml(str=""){
@@ -167,14 +181,14 @@ function inferStatusFromText(text=""){
 
 // -------------------- WOW Effects --------------------
 function playWow(){
-  // 1) Neon success blast
+  // Neon success blast
   successBlast.classList.remove("hidden");
   successBlast.querySelector("span").style.animation = "none";
-  void successBlast.offsetWidth; // restart
+  void successBlast.offsetWidth;
   successBlast.querySelector("span").style.animation = "";
   setTimeout(()=> successBlast.classList.add("hidden"), 1300);
 
-  // 2) Confetti burst from center
+  // Confetti burst from center
   confettiBurst();
 }
 
@@ -184,7 +198,6 @@ function confettiBurst(){
   const cx = fxCanvas.width / 2;
   const cy = fxCanvas.height / 2;
 
-  // Create particles
   confetti = [];
   const count = 220;
   for (let i=0;i<count;i++){
